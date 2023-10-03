@@ -18,50 +18,44 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 # Olivers's Customizations                                                       #
 ###############################################################################
 
-# xcode-select --install 
+xcode-select --install 
 
-# echo "Hello $(whoami)! Let's get you set up."
-# # Git credentials
-# # Not in the repository, to prevent people from accidentally committing under my name
-# GIT_AUTHOR_NAME="Oliver Winter"
-# GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
-# git config --global user.name "$GIT_AUTHOR_NAME"
-# GIT_AUTHOR_EMAIL="owinter86@gmail.com"
-# GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
-# git config --global user.email "$GIT_AUTHOR_EMAIL"
+echo "Hello $(whoami)! Let's get you set up."
+# Git credentials
+# Not in the repository, to prevent people from accidentally committing under my name
+GIT_AUTHOR_NAME="Oliver Winter"
+GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
+git config --global user.name "$GIT_AUTHOR_NAME"
+GIT_AUTHOR_EMAIL="owinter86@gmail.com"
+GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+git config --global user.email "$GIT_AUTHOR_EMAIL"
 
-# echo "mkdir -p ${HOME}/code"
-# mkdir -p "${HOME}/code"
+echo "mkdir -p ${HOME}/code"
+mkdir -p "${HOME}/code"
 
-# echo "installing homebrew"
-# # install homebrew https://brew.sh
-# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/null
+echo "installing homebrew"
+# install homebrew https://brew.sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/null
 
-# echo '# Set PATH, MANPATH, etc., for Homebrew.' >> ~/.zprofile
-# echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-# eval "$(/opt/homebrew/bin/brew shellenv)"
+echo '# Set PATH, MANPATH, etc., for Homebrew.' >> ~/.zprofile
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# echo "brew installing stuff"
-# brew install watchman rbenv ruby-build n xcbeautify
+echo "brew installing stuff"
+brew install watchman n xcbeautify
 
 echo "installing node (via n-install)"
-sudo n 16
+sudo n 18
 
 echo "node --version: $(node --version)"
 echo "npm --version: $(npm --version)"
 
-echo "installing a few global npm packages"
-sudo npm install --location=global appcenter-cli semantic-release-cli ios-simulator-app-exporter ios-deploy 
-
 echo "installing apps with brew --cask"
 brew tap homebrew/cask-versions
 brew tap homebrew/cask-fonts
-brew tap facebook/fb
 
-brew install --cask zulu11 google-chrome iterm2 android-studio fork bettermouse cyberduck \
-visual-studio-code 1password slack vlc spotify flipper lunar xcodes figma fig font-fira-code-nerd-font
-
-brew install idb-companion
+brew install --cask google-chrome iterm2 android-studio fork \
+visual-studio-code 1password slack vlc spotify xcodes figma fig font-fira-code-nerd-font raycast expo-orbit devcleaner proxyman
 
 echo "Generating a new SSH key for GitHub"
 ssh-keygen -t ed25519 -C "owinter86@gmail.com" -f ~/.ssh/id_ed25519
@@ -241,7 +235,6 @@ defaults write com.apple.dock \
                                       "$(__dock_item /Applications/Slack.app)" \
                                       "$(__dock_item /Applications/iTerm.app)" \
                                       "$(__dock_item /Applications/Figma.app)" \
-                                      "$(__dock_item /Applications/Flipper.app)" \
                                       "$(__dock_item /Applications/Android\ Studio.app)" \
                                       "$(__dock_item /Applications/Visual\ Studio\ Code.app)" \
                                       "$(__dock_item /Applications/Google\ Chrome.app)"
