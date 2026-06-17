@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
 # ~/.macos — https://mths.be/macos
-# Run without downloading:
-# curl https://raw.githubusercontent.com/owinter86/dotfiles/HEAD/.macos | bash
+# Bootstrap a fresh Mac. Run without downloading:
+#   curl https://raw.githubusercontent.com/owinter86/dotfiles/HEAD/.macos | bash
+# Packages are managed declaratively in the adjacent ./Brewfile (brew bundle).
 
-# Close any open System Preferences panes, to prevent them from overriding
-# settings we’re about to change
-osascript -e 'tell application "System Preferences" to quit'
+# Close System Settings, to prevent it overriding settings we're about to change
+osascript -e 'tell application "System Settings" to quit' 2>/dev/null \
+  || osascript -e 'tell application "System Preferences" to quit'
 
 # Ask for the administrator password upfront
 sudo -v
@@ -15,64 +16,85 @@ sudo -v
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
 ###############################################################################
-# Olivers's Customizations                                                       #
+# Oliver's Customizations                                                     #
 ###############################################################################
 
 echo "Hello $(whoami)! Let's get you set up."
+
 # Git credentials
 GIT_AUTHOR_NAME="Oliver Winter"
-GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
-git config --global user.name "$GIT_AUTHOR_NAME"
 GIT_AUTHOR_EMAIL="owinter86@gmail.com"
-GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+git config --global user.name "$GIT_AUTHOR_NAME"
 git config --global user.email "$GIT_AUTHOR_EMAIL"
+git config --global init.defaultBranch main
+git config --global pull.rebase true
 
 echo "mkdir -p ${HOME}/code"
 mkdir -p "${HOME}/code"
 
-echo "installing ohmyzsh"
-curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh /dev/stdin --unattended
-
-echo "installing node (via n-install)"
-curl -L https://bit.ly/n-install | bash
-echo "installing node (via n-install)"
-n install 20
-
-echo "node --version: $(node --version)"
-echo "npm --version: $(npm --version)"
+###############################################################################
+# Homebrew (install first — everything below depends on it)                   #
+###############################################################################
 
 echo "installing homebrew"
-# install homebrew https://brew.sh
+# https://brew.sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/null
 
 echo '# Set PATH, MANPATH, etc., for Homebrew.' >> ~/.zshrc
 echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-echo "brew installing stuff"
-brew install watchman xcbeautify
+###############################################################################
+# Dotfiles repo + packages (Brewfile)                                         #
+###############################################################################
 
-echo "installing apps with brew --cask"
-brew tap homebrew/cask-versions
-brew tap homebrew/cask-fonts
+DOTFILES="${HOME}/code/dotfiles"
+if [ ! -d "$DOTFILES" ]; then
+  echo "cloning dotfiles"
+  git clone https://github.com/owinter86/dotfiles.git "$DOTFILES"
+fi
 
-brew install --cask google-chrome iterm2 android-studio fork \
-  visual-studio-code 1password slack vlc spotify xcodes figma \
-  codewhisperer font-hack-nerd-font expo-orbit \
-  devcleaner proxyman logi-options-plus steam
+echo "installing packages from Brewfile (brew bundle)"
+brew bundle --file="$DOTFILES/Brewfile"
+# (Cursor extensions are synced separately, so they're not managed here.)
+
+###############################################################################
+# Shell: Oh My Zsh + Starship + fnm/node                                      #
+###############################################################################
+
+echo "installing oh-my-zsh"
+curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh /dev/stdin --unattended
+
+# Node via fnm (replaces n / n-install); starship prompt
+echo 'eval "$(fnm env --use-on-cd)"' >> ~/.zshrc
+echo 'eval "$(starship init zsh)"' >> ~/.zshrc
+eval "$(fnm env --use-on-cd)"
+echo "installing node LTS via fnm"
+fnm install --lts
+fnm default lts-latest
+echo "node --version: $(node --version)"
+echo "npm  --version: $(npm --version)"
+
+###############################################################################
+# SSH key for GitHub                                                          #
+###############################################################################
 
 echo "Generating a new SSH key for GitHub"
-ssh-keygen -t ed25519 -C "owinter86@gmail.com" -f ~/.ssh/id_ed25519
+ssh-keygen -t ed25519 -C "$GIT_AUTHOR_EMAIL" -f ~/.ssh/id_ed25519
 eval "$(ssh-agent -s)"
-touch ~/.ssh/config
-echo "Host *\n AddKeysToAgent yes\n UseKeychain yes\n IdentityFile ~/.ssh/id_ed25519" | tee ~/.ssh/config
-ssh-add -K ~/.ssh/id_ed25519
-echo "run 'pbcopy < ~/.ssh/id_ed25519.pub' and paste that into GitHub"
+
+# Modern keychain flag (-K is deprecated since macOS Monterey)
+printf 'Host *\n  AddKeysToAgent yes\n  UseKeychain yes\n  IdentityFile ~/.ssh/id_ed25519\n' > ~/.ssh/config
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+
+# Easiest path: let the GitHub CLI upload the key for you
+echo "Run 'gh auth login' then 'gh ssh-key add ~/.ssh/id_ed25519.pub' to register the key,"
+echo "or 'pbcopy < ~/.ssh/id_ed25519.pub' and paste it into GitHub manually."
 
 echo "making system modifications:"
 
 ###############################################################################
-# Trackpad, mouse, keyboard, Bluetooth accessories, and input                 #
+# Trackpad, mouse, keyboard, input                                            #
 ###############################################################################
 
 # Disable "natural" scrolling.
@@ -81,16 +103,20 @@ defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false
 # Always open new documents in tabs.
 defaults write NSGlobalDomain AppleWindowTabbingMode always
 
+###############################################################################
+# Default browser                                                             #
+###############################################################################
+
+# Set Safari as the default browser (macOS shows a one-time confirmation dialog).
+defaultbrowser safari
 
 ###############################################################################
 # Screen                                                                      #
 ###############################################################################
 
-# Save screenshots to the desktop
+mkdir -p "${HOME}/Documents/Screenshots"
 defaults write com.apple.screencapture location -string "${HOME}/Documents/Screenshots"
-# Save screenshots in PNG format (other options: BMP, GIF, JPG, PDF, TIFF)
 defaults write com.apple.screencapture type -string "png"
-
 
 ###############################################################################
 # Finder                                                                      #
@@ -107,45 +133,38 @@ defaults write com.apple.finder QuitMenuItem -bool true                      # A
 ###############################################################################
 # Dock, Dashboard, and hot corners                                            #
 ###############################################################################
-set -e
 
 defaults write com.apple.dock autohide -bool true       # Autohide dock.
 defaults write com.apple.dock tilesize -int 64          # Set dock icon size.
 defaults write com.apple.dock magnification -bool true  # Enable dock magnification.
 defaults write com.apple.dock largesize -int 96         # Set dock magnificated icon size.
-defaults write com.apple.dock show-recents -bool false  # Disable recent apps in dock
-defaults write NSGlobalDomain AppleInterfaceStyle Dark  # Use dark menu bar and dock.
-defaults write com.apple.dock \
-               persistent-apps -array "$(__dock_item /Applications/Utilities/Activity\ Monitor.app)" \
-                                      "$(__dock_item /Applications/Utilities/Settings.app)" \
-                                      "$(__dock_item /Applications/Google\ Chrome.app)" \
-                                      "$(__dock_item /Applications/Xcodes.app)" \
-                                      "$(__dock_item /Applications/Spotify.app)" \
-                                      "$(__dock_item /Applications/Fork.app)" \
-                                      "$(__dock_item /Applications/Slack.app)" \
-                                      "$(__dock_item /Applications/iTerm.app)" \
-                                      "$(__dock_item /Applications/Figma.app)" \
-                                      "$(__dock_item /Applications/Android\ Studio.app)" \
-                                      "$(__dock_item /Applications/Visual\ Studio\ Code.app)" \
-                                      "$(__dock_item /Applications/Google\ Chrome.app)"
+defaults write com.apple.dock show-recents -bool false  # Disable recent apps in dock.
+defaults write NSGlobalDomain AppleInterfaceStyle -string Dark  # Use dark menu bar and dock.
+
+# Helper: build a persistent-apps plist entry from an app path.
+__dock_item() {
+  printf '%s%s%s' \
+    '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>' \
+    "$1" \
+    '</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>'
+}
+
+defaults write com.apple.dock persistent-apps -array \
+  "$(__dock_item /System/Applications/Utilities/Activity\ Monitor.app)" \
+  "$(__dock_item /System/Applications/System\ Settings.app)" \
+  "$(__dock_item /Applications/Safari.app)" \
+  "$(__dock_item /Applications/Xcodes.app)" \
+  "$(__dock_item /Applications/Spotify.app)" \
+  "$(__dock_item /Applications/Fork.app)" \
+  "$(__dock_item /Applications/Slack.app)" \
+  "$(__dock_item /Applications/Warp.app)" \
+  "$(__dock_item /Applications/Figma.app)" \
+  "$(__dock_item /Applications/Android\ Studio.app)" \
+  "$(__dock_item /Applications/Cursor.app)"
 
 killall Dock
 
-# Add iOS & Watch Simulator to Launchpad
+# Add iOS Simulator to Launchpad
 sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" "/Applications/Simulator.app"
-# sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator (Watch).app" "/Applications/Simulator (Watch).app"
-
-###############################################################################
-# Terminal & iTerm 2                                                          #
-###############################################################################
-
-# Don’t display the annoying prompt when quitting iTerm
-defaults write com.googlecode.iterm2 PromptOnQuit -bool false
-
-# Specify the preferences directory
-defaults write com.googlecode.iterm2.plist PrefsCustomFolder -string "${HOME}/Library/Mobile\ Documents/com~apple~CloudDocs/dotfiles/iterm2"
-# Tell iTerm2 to use the custom preferences in the directory
-defaults write com.googlecode.iterm2.plist LoadPrefsFromCustomFolder -bool true
-
 
 echo "Done. Note that some of these changes require a logout/restart to take effect."
