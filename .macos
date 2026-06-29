@@ -77,6 +77,45 @@ fnm default lts-latest
 echo "node --version: $(node --version)"
 echo "npm  --version: $(npm --version)"
 
+# EAS CLI (Expo builds, updates, submissions). npm-only; scoped to this Node
+# version under fnm — reinstall if you switch Node, or use `npx eas-cli`.
+echo "installing eas-cli"
+npm install -g eas-cli
+
+# Maestro (mobile E2E testing). NB: the Homebrew cask named "maestro" is a
+# DIFFERENT product — the real mobile.dev Maestro installs via this script
+# into ~/.maestro/bin (added to PATH in .zshrc). Needs the JDK from Brewfile.
+echo "installing Maestro"
+curl -fsSL "https://get.maestro.mobile.dev" | bash
+
+###############################################################################
+# Android SDK packages + emulator (headless via cmdline-tools)                #
+###############################################################################
+
+# android-commandlinetools (Brewfile) provides sdkmanager/avdmanager. We install
+# packages into the standard SDK location that Android Studio & Expo expect.
+echo "installing Android SDK packages + creating an emulator"
+export ANDROID_HOME="${HOME}/Library/Android/sdk"
+mkdir -p "$ANDROID_HOME"
+SDK_BIN="$(brew --prefix)/share/android-commandlinetools/cmdline-tools/latest/bin"
+
+yes | "$SDK_BIN/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses >/dev/null
+"$SDK_BIN/sdkmanager" --sdk_root="$ANDROID_HOME" \
+  "platform-tools" \
+  "emulator" \
+  "platforms;android-36" \
+  "sources;android-36" \
+  "build-tools;36.0.0" \
+  "system-images;android-36;google_apis;arm64-v8a"
+
+# Create a Pixel AVD (arm64 image for Apple Silicon). Non-fatal if the device
+# profile/image id differs — adjust with `avdmanager list device|target`.
+echo "no" | "$SDK_BIN/avdmanager" create avd \
+  -n Pixel_API_36 \
+  -k "system-images;android-36;google_apis;arm64-v8a" \
+  --device pixel_7 --force \
+  || echo "AVD not created — check 'avdmanager list device' and adjust."
+
 ###############################################################################
 # SSH key for GitHub                                                          #
 ###############################################################################

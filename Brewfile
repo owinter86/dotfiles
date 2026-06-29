@@ -28,6 +28,8 @@ cask "1password"
 cask "1password-cli"
 # Tools for building Android applications
 cask "android-studio"
+# Android SDK command-line tools (headless sdkmanager/avdmanager)
+cask "android-commandlinetools"
 # Reclaim storage used for Xcode caches
 cask "devcleaner"
 # App to build and share containerised applications and microservices
@@ -36,6 +38,8 @@ cask "docker-desktop"
 cask "expo-orbit"
 # Collaborative team software
 cask "figma"
+# HTTP debugging proxy (inspect app <-> API traffic)
+cask "proxyman"
 cask "font-hack-nerd-font"
 # GIT client
 cask "fork"

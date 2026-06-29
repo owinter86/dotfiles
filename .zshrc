@@ -37,9 +37,16 @@ eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
 # Java (Azul Zulu 17 — installed via Brewfile)
 export JAVA_HOME="/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
 
-# Android SDK (Android Studio)
+# Android SDK (Android Studio / command-line tools)
 export ANDROID_HOME="$HOME/Library/Android/sdk"
-path+=("$ANDROID_HOME/emulator" "$ANDROID_HOME/platform-tools")
+path+=(
+  "$ANDROID_HOME/emulator"
+  "$ANDROID_HOME/platform-tools"
+  "$ANDROID_HOME/cmdline-tools/latest/bin"
+)
+
+# Maestro (mobile E2E testing)
+path+=("$HOME/.maestro/bin")
 
 # User-local binaries
 path+=("$HOME/.local/bin")

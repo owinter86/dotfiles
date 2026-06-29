@@ -39,3 +39,15 @@ they are not managed in this repo.
 - `gh auth login` then `gh ssh-key add ~/.ssh/id_ed25519.pub`
 - Sign in to Warp, 1Password, Slack, Spotify
 - Confirm the macOS prompt to set Safari as the default browser
+
+### React Native / Expo
+
+- `eas login` to authenticate the Expo CLI
+- **Xcode** (can't be scripted — App Store / GUI gated):
+  - Install Xcode from the App Store, then `sudo xcode-select -s /Applications/Xcode.app`
+    and `sudo xcodebuild -runFirstLaunch`
+  - Add an iOS Simulator runtime: Xcode → Settings → Components → iOS
+- **Android** is set up automatically by `.macos` (SDK 36 + build-tools + emulator
+  image, and a `Pixel_API_36` AVD). Just open Android Studio once to let it adopt
+  the existing `~/Library/Android/sdk`. Launch the emulator with
+  `emulator -avd Pixel_API_36`.
