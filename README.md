@@ -12,9 +12,9 @@ This runs [`.macos`](.macos), which:
 
 1. Sets Git identity and sensible Git defaults
 2. Installs Homebrew
-3. Clones this repo to `~/code/dotfiles`
+3. Clones this repo to `~/code/dotfiles` and symlinks [`.zshrc`](.zshrc) into `~`
 4. Installs every app and CLI tool from the [`Brewfile`](Brewfile) via `brew bundle`
-5. Installs Oh My Zsh, Starship, and Node LTS (via `fnm`)
+5. Uses plain zsh + Starship (no framework) and installs Node LTS (via `fnm`)
 6. Generates an SSH key and helps register it with GitHub (`gh ssh-key add`)
 7. Applies system preferences (Finder, Dock, screenshots, trackpad)
 
@@ -37,5 +37,5 @@ they are not managed in this repo.
 ## Post-install
 
 - `gh auth login` then `gh ssh-key add ~/.ssh/id_ed25519.pub`
-- Sign in to Warp, 1Password, Raycast, Slack, Spotify
+- Sign in to Warp, 1Password, Slack, Spotify
 - Confirm the macOS prompt to set Safari as the default browser

@@ -40,8 +40,8 @@ echo "installing homebrew"
 # https://brew.sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/null
 
-echo '# Set PATH, MANPATH, etc., for Homebrew.' >> ~/.zshrc
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+# Load brew into the current shell. (Persistent setup lives in the managed
+# .zshrc symlinked below — we don't append to ~/.zshrc here.)
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 ###############################################################################
@@ -54,20 +54,22 @@ if [ ! -d "$DOTFILES" ]; then
   git clone https://github.com/owinter86/dotfiles.git "$DOTFILES"
 fi
 
+# Symlink the managed shell config into place (backing up any existing file).
+echo "linking ~/.zshrc -> $DOTFILES/.zshrc"
+[ -e ~/.zshrc ] && [ ! -L ~/.zshrc ] && mv ~/.zshrc ~/.zshrc.pre-dotfiles
+ln -sf "$DOTFILES/.zshrc" ~/.zshrc
+
 echo "installing packages from Brewfile (brew bundle)"
 brew bundle --file="$DOTFILES/Brewfile"
 # (Cursor extensions are synced separately, so they're not managed here.)
 
 ###############################################################################
-# Shell: Oh My Zsh + Starship + fnm/node                                      #
+# Shell: plain zsh + Starship + fnm/node                                      #
 ###############################################################################
 
-echo "installing oh-my-zsh"
-curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh /dev/stdin --unattended
-
-# Node via fnm (replaces n / n-install); starship prompt
-echo 'eval "$(fnm env --use-on-cd)"' >> ~/.zshrc
-echo 'eval "$(starship init zsh)"' >> ~/.zshrc
+# No framework: ~/.zshrc (symlinked above) wires up brew, fnm, starship,
+# completions and aliases directly. Starship and fnm are installed via the
+# Brewfile; here we just bring fnm into the current shell to install Node.
 eval "$(fnm env --use-on-cd)"
 echo "installing node LTS via fnm"
 fnm install --lts
