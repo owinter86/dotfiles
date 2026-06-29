@@ -54,10 +54,10 @@ if [ ! -d "$DOTFILES" ]; then
   git clone https://github.com/owinter86/dotfiles.git "$DOTFILES"
 fi
 
-# Symlink the managed shell config into place (backing up any existing file).
-echo "linking ~/.zshrc -> $DOTFILES/.zshrc"
-[ -e ~/.zshrc ] && [ ! -L ~/.zshrc ] && mv ~/.zshrc ~/.zshrc.pre-dotfiles
-ln -sf "$DOTFILES/.zshrc" ~/.zshrc
+# Copy the managed shell config into place (backing up any existing file).
+echo "copying $DOTFILES/.zshrc -> ~/.zshrc"
+[ -f ~/.zshrc ] && mv ~/.zshrc ~/.zshrc.pre-dotfiles
+cp "$DOTFILES/.zshrc" ~/.zshrc
 
 echo "installing packages from Brewfile (brew bundle)"
 brew bundle --file="$DOTFILES/Brewfile"

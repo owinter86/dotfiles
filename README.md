@@ -12,7 +12,7 @@ This runs [`.macos`](.macos), which:
 
 1. Sets Git identity and sensible Git defaults
 2. Installs Homebrew
-3. Clones this repo to `~/code/dotfiles` and symlinks [`.zshrc`](.zshrc) into `~`
+3. Clones this repo to `~/code/dotfiles` and copies [`.zshrc`](.zshrc) into `~`
 4. Installs every app and CLI tool from the [`Brewfile`](Brewfile) via `brew bundle`
 5. Uses plain zsh + Starship (no framework) and installs Node LTS (via `fnm`)
 6. Generates an SSH key and helps register it with GitHub (`gh ssh-key add`)
