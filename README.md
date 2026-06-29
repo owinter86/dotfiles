@@ -10,13 +10,32 @@ curl https://raw.githubusercontent.com/owinter86/dotfiles/HEAD/.macos | bash
 
 This runs [`.macos`](.macos), which:
 
-1. Sets Git identity and sensible Git defaults
+1. Sets shared Git defaults and writes a per-machine identity to `~/.gitconfig.local`
 2. Installs Homebrew
 3. Clones this repo to `~/code/dotfiles` and copies [`.zshrc`](.zshrc) into `~`
 4. Installs every app and CLI tool from the [`Brewfile`](Brewfile) via `brew bundle`
 5. Uses plain zsh + Starship (no framework) and installs Node LTS (via `fnm`)
 6. Generates an SSH key and helps register it with GitHub (`gh ssh-key add`)
 7. Applies system preferences (Finder, Dock, screenshots, trackpad)
+
+## Per-machine config
+
+Shared Git settings (name, default branch, rebase-on-pull) are tracked in
+[`.macos`](.macos). Your **identity** — email, and a signing key if you use one —
+lives in `~/.gitconfig.local`, which is **not** tracked and is pulled in via
+`include.path` in the global config. The bootstrap writes a template; edit it on
+each machine:
+
+```sh
+# ~/.gitconfig.local on the work laptop, for example
+[user]
+	email = oliver@company.com
+	# signingkey = <key-id>
+# [commit]
+#	gpgsign = true
+```
+
+Same dotfiles repo, different identity per machine — no edits to tracked files.
 
 ## Managing packages
 

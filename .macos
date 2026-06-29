@@ -21,13 +21,32 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
 echo "Hello $(whoami)! Let's get you set up."
 
-# Git credentials
+# Git: shared defaults are tracked here; per-machine identity (email / signing)
+# lives in ~/.gitconfig.local, which is NOT tracked and is included by the
+# global config. This lets the same repo bootstrap personal and work machines.
 GIT_AUTHOR_NAME="Oliver Winter"
-GIT_AUTHOR_EMAIL="owinter86@gmail.com"
+GIT_AUTHOR_EMAIL="owinter86@gmail.com"   # default; override per machine below
 git config --global user.name "$GIT_AUTHOR_NAME"
-git config --global user.email "$GIT_AUTHOR_EMAIL"
 git config --global init.defaultBranch main
 git config --global pull.rebase true
+
+# Create the per-machine identity file once, then include it from the global config.
+GITCONFIG_LOCAL="${HOME}/.gitconfig.local"
+if [ ! -f "$GITCONFIG_LOCAL" ]; then
+  cat > "$GITCONFIG_LOCAL" <<EOF
+# Per-machine git identity — NOT tracked in dotfiles.
+# Set the email for THIS machine (personal vs work).
+[user]
+	email = ${GIT_AUTHOR_EMAIL}
+	# signingkey = <key-id>     # if you set up commit signing on this machine
+# [commit]
+#	gpgsign = true              # uncomment to sign commits with the key above
+EOF
+  echo "created $GITCONFIG_LOCAL — edit the email if this is a work machine"
+fi
+# Add the include once (idempotent).
+git config --global --get-all include.path 2>/dev/null | grep -qxF "~/.gitconfig.local" \
+  || git config --global --add include.path "~/.gitconfig.local"
 
 echo "mkdir -p ${HOME}/code"
 mkdir -p "${HOME}/code"
